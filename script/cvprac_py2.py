@@ -1,11 +1,13 @@
 #!/usr/bin/env python
 import rospy
-from sensor_msgs.msg import Image 
+from sensor_msgs.msg import Image
+from geometry_msgs.msg import Point
 from cv_bridge import CvBridge
 import cv2
 import numpy as np
 
 def process_image(msg):
+    pub = rospy.Publisher('cobo_point', Point, queue_size=10)
     try:
         bridge = CvBridge()
         orig = bridge.imgmsg_to_cv2(msg, "bgr8")
@@ -19,6 +21,13 @@ def process_image(msg):
         x,y= int(mu["m10"]/mu["m00"]) , int(mu["m01"]/mu["m00"])
         cv2.circle(orig, (x,y), 15, 100, 2, 4)
         cv2.imshow('out_image', orig)
+
+        vel=Point()
+        vel.x=x
+        vel.y=y
+        vel.z=0
+        pub.publish(vel)
+
         cv2.waitKey(1)
     except Exception as err:
         print err
